@@ -1,33 +1,20 @@
-//check in xmlcall op sessionkey door eerst te parsen
-
-// var parseString = require('xml2js').parseString;
-// var xml = "<root>{Hello xml2js!}</root>"
-// parseString(xml, function (err, result) {
-//     console.dir(result);
-// });
-
-
-
 let sessionKey;
 let hasSessionKey = false;
-init()
-function init(){
-    setTimeout(()=>{console.log("hoi")}, 1000)
-    // addRelation();
-    console.log("hoi2")
+
+let settings = {
+  "host": 'soap.e-boekhouden.nl',
+  "path": '/soap.asmx',
+  "method": 'POST',
+  "headers": {
+    'Content-Type': 'text/xml; charset=utf-8',
+  },
 }
 
+function init() {
+  addRelation();
+}
 
 let openSession = () => {
-  let settings = {
-    "host": 'soap.e-boekhouden.nl',
-    "path": '/soap.asmx',
-    "method": 'POST',
-    "headers": {
-      'Content-Type': 'text/xml; charset=utf-8',
-    },
-    
-  }
   let openXml = `
   <?xml version="1.0" encoding="utf-8"?>
       <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
@@ -40,19 +27,26 @@ let openSession = () => {
     </soap:Envelope>
   `
 
+  xmlCall(openXml.trim());
+}
 
-  xmlCall(settings, openXml.trim());
+let closeSession = () => {
+  let closeXml = `
+  <?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <CloseSession xmlns="http://www.e-boekhouden.nl/soap">
+      <SessionID>${sessionKey}</SessionID>
+    </CloseSession>
+  </soap:Body>
+</soap:Envelope>
+  `
+
+  xmlCall(closeXml.trim());
 }
 
 let addRelation = () => {
-  let settings = {
-    "host": 'soap.e-boekhouden.nl',
-    "path": '/soap.asmx',
-    "method": 'POST',
-    "headers": {
-      'Content-Type': 'text/xml; charset=utf-8',
-    }
-  }
+  console.log("begin --------------------------------------------------------------------------------------------")
   let relationXml = `
   <?xml version="1.0" encoding="utf-8"?>
     <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
@@ -73,10 +67,19 @@ let addRelation = () => {
     </soap:Body>
   </soap:Envelope>
   `
-  console.log(relationXml)
+  openSession()
+  setTimeout(() => {
+    console.log("\n")
+    console.log(sessionKey);
+    console.log("\n")
+    xmlCall(relationXml.trim())
+    setTimeout(() => {
+      closeSession();
+    }, 2000);
+  }, 1000); 
 }
 
-let xmlCall = (settings, xml) => {
+let xmlCall = (xml) => {
   let http = require('http');
   let http_options = {
     hostname: settings.host,
@@ -89,27 +92,28 @@ let xmlCall = (settings, xml) => {
     console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
     res.setEncoding('utf8');
     res.on('data', (chunk) => {
+      console.log(chunk)
+      //check in xmlcall op sessionkey door eerst te parsen
       var submatch;
       var matches = chunk.match(/\{(.*?)\}/);
       if (matches) {
         submatch = matches[1];
-}
-      sessionKey = submatch;
-      console.log(`BODY: ${sessionKey}`);
+        sessionKey = submatch;
+      }
     });
 
-    res.on('end', () => {
-      console.log('No more data in response.')
-    })
+  res.on('end', () => {
+    console.log('No more data in response.')
   });
+});
 
-  req.on('error', (e) => {
-    console.log(`problem with request: ${e.message}`);
-  });
+req.on('error', (e) => {
+  console.log(`problem with request: ${e.message}`);
+});
 
-  // write data to request body
-  req.write(xml); // xml would have been set somewhere to a complete xml document in the form of a string
-  req.end();
+// write data to request body
+req.write(xml); // xml would have been set somewhere to a complete xml document in the form of a string
+req.end();
 }
 
 init();
