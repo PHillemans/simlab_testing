@@ -1,4 +1,4 @@
-let key = "B6EF0850-704F-44E3-A5A0-555BB61DFD87";
+let key = "05B68E2C-9FB2-4C6E-8E6F-11216206748A";
 
 let settings = {
     "host": 'soap.e-boekhouden.nl',
@@ -36,41 +36,41 @@ let settings = {
 
   let xmlCall = (xml) => {
 
-    console.log(xml)
-//     let http = require('http');
-//     let http_options = {
-//       hostname: settings.host,
-//       path: settings.path,
-//       method: settings.method,
-//       headers: settings.headers,
-//     }
-//     var req = http.request(http_options, (res) => {
-//       console.log(`STATUS: ${res.statusCode}`);
-//       console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
-//       res.setEncoding('utf8');
-//       res.on('data', (chunk) => {
-//         console.log(chunk)
-//         //check in xmlcall op sessionkey door eerst te parsen
-//         var submatch;
-//         var matches = chunk.match(/\{(.*?)\}/);
-//         if (matches) {
-//           submatch = matches[1];
-//           sessionKey = submatch;
-//         }
-//       });
+    // console.log(xml)
+    let http = require('http');
+    let http_options = {
+      hostname: settings.host,
+      path: settings.path,
+      method: settings.method,
+      headers: settings.headers,
+    }
+    var req = http.request(http_options, (res) => {
+      console.log(`STATUS: ${res.statusCode}`);
+      console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
+      res.setEncoding('utf8');
+      res.on('data', (chunk) => {
+        console.log(chunk)
+        //check in xmlcall op sessionkey door eerst te parsen
+        var submatch;
+        var matches = chunk.match(/\{(.*?)\}/);
+        if (matches) {
+          submatch = matches[1];
+          sessionKey = submatch;
+        }
+      });
   
-//     res.on('end', () => {
-//       console.log('No more data in response.')
-//     });
-//   });
+    res.on('end', () => {
+      console.log('No more data in response.')
+    });
+  });
   
-//   req.on('error', (e) => {
-//     console.log(`problem with request: ${e.message}`);
-//   });
+  req.on('error', (e) => {
+    console.log(`problem with request: ${e.message}`);
+  });
   
-//   // write data to request body
-//   req.write(xml); // xml would have been set somewhere to a complete xml document in the form of a string
-//   req.end();
+  // write data to request body
+  req.write(xml); // xml would have been set somewhere to a complete xml document in the form of a string
+  req.end();
   }
 
   addRelation();
